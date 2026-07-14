@@ -8,3 +8,5 @@ matplotlib
 seaborn
 tqdm
 pytest
+markdown
+xhtml2pdf
