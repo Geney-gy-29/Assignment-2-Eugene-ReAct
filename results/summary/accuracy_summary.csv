@@ -1,0 +1,15 @@
+domain,method,n,accuracy,backoff_rate,source
+fever,act,10,40.0,0.0,fever_act_n10.jsonl
+fever,cot,10,40.0,0.0,fever_cot_n10.jsonl
+fever,cot_sc,10,50.0,0.0,fever_cotsc_n10.jsonl
+fever,cotsc_react,10,40.0,30.0,fever_cotscreact_n10.jsonl
+fever,react,10,30.0,0.0,fever_react_n10.jsonl
+fever,react_cotsc,10,30.0,10.0,fever_reactcotsc_n10.jsonl
+fever,standard,10,20.0,0.0,fever_standard_n10.jsonl
+hotpotqa,act,10,70.0,0.0,hotpotqa_act_n10.jsonl
+hotpotqa,cot,10,60.0,0.0,hotpotqa_cot_n10.jsonl
+hotpotqa,cot_sc,10,70.0,0.0,hotpotqa_cotsc_n10.jsonl
+hotpotqa,cotsc_react,10,60.0,20.0,hotpotqa_cotscreact_n10.jsonl
+hotpotqa,react,10,60.0,0.0,hotpotqa_react_n10.jsonl
+hotpotqa,react_cotsc,10,60.0,30.0,hotpotqa_reactcotsc_n10.jsonl
+hotpotqa,standard,10,30.0,0.0,hotpotqa_standard_n10.jsonl
