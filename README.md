@@ -4,9 +4,9 @@ Reduced-scale reproduction of ["ReAct: Synergizing Reasoning and Acting in Langu
 
 ## Scope
 
-- **Domains**: HotpotQA (multi-hop QA), FEVER (fact verification), ALFWorld (embodied household tasks). WebShop is out of scope (requires a local Flask server + 1.18M product index).
+- **Domains**: HotpotQA (multi-hop QA), FEVER (fact verification). ALFWorld and WebShop are out of scope (ALFWorld cut to conserve time/token budget for the deadline; WebShop requires a local Flask server + 1.18M product index).
 - **Methods**: Standard, Chain-of-Thought (CoT), CoT Self-Consistency (CoT-SC), Act, ReAct, and two hybrid back-off strategies (ReAct→CoT-SC, CoT-SC→ReAct).
-- **Scale**: n=50-100 examples per condition for HotpotQA/FEVER (paper used 500-7405); ~5-10 games per task type for ALFWorld (paper used 134 eval games). This is an explicitly reduced-scale reproduction, not a full-scale one — see `report/Baseline_Reproduction_Report.md` for the methodology note.
+- **Scale**: n=50-100 examples per condition for HotpotQA/FEVER (paper used 500-7405). This is an explicitly reduced-scale reproduction, not a full-scale one — see `report/Baseline_Reproduction_Report.md` for the methodology note.
 
 ## AI tools used
 
@@ -50,10 +50,10 @@ Regenerates all comparison figures in `analysis/figures/` from `results/summary/
 ```
 react_repro/
 ├── llm.py          # OpenRouter client
-├── prompts/        # few-shot exemplars, transcribed verbatim from the paper's Appendix C
-├── envs/           # WikiEnv (HotpotQA/FEVER), AlfworldEnv (ALFWorld)
+├── prompts/        # few-shot exemplars, transcribed verbatim from the official ReAct repo
+├── envs/           # WikiEnv (HotpotQA/FEVER)
 ├── agent.py        # the react() loop, action parsing
 ├── strategies.py   # standard/cot/cot_sc/act/react/back-off strategies
-├── metrics.py       # em(), fever_acc(), alfworld_success()
+├── metrics.py       # em(), fever_acc()
 └── run.py          # CLI entry point
 ```

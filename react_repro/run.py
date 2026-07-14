@@ -14,6 +14,7 @@ import time
 from react_repro.envs.wiki_env import WikiEnv
 from react_repro.metrics import em, fever_acc
 from react_repro.strategies import (
+    FEVER_ACT_INSTRUCTION,
     act,
     cot_single,
     cot_sc,
@@ -44,6 +45,11 @@ def _load_data(path: str) -> list[dict]:
 def run_one(domain: str, method: str, item: dict, n_sc: int, max_steps: int, temperature: float) -> dict:
     question = item["question"] if domain == "hotpotqa" else item["claim"]
     gold = item["answer"] if domain == "hotpotqa" else item["label"]
+    query_label = "Question" if domain == "hotpotqa" else "Claim"
+    # FEVER's official exemplars (fever.json) bake their own instruction
+    # line in; HotpotQA's exemplars need the separate INSTRUCTION preamble.
+    react_instruction = "" if domain == "fever" else None  # None -> agent.py/strategies.py default
+    act_instruction = FEVER_ACT_INSTRUCTION if domain == "fever" else None
 
     react_ex = _load_prompt(f"{domain}_react_examples.txt")
     cot_ex = _load_prompt(f"{domain}_cot_examples.txt")
@@ -53,25 +59,37 @@ def run_one(domain: str, method: str, item: dict, n_sc: int, max_steps: int, tem
     used_method = method
 
     if method == "standard":
-        result = standard(question, temperature=temperature)
+        result = standard(question, temperature=temperature, domain=domain)
     elif method == "cot":
-        result = cot_single(question, cot_ex, temperature=temperature)
+        result = cot_single(question, cot_ex, temperature=temperature, query_label=query_label)
     elif method == "cot_sc":
-        result = cot_sc(question, cot_ex, n=n_sc, temperature=0.7)
+        result = cot_sc(question, cot_ex, n=n_sc, temperature=0.7, query_label=query_label)
     elif method == "act":
         env = WikiEnv()
-        result = act(question, act_ex, env, max_steps=max_steps, temperature=temperature)
+        kwargs = {"query_label": query_label}
+        if act_instruction is not None:
+            kwargs["instruction"] = act_instruction
+        result = act(question, act_ex, env, max_steps=max_steps, temperature=temperature, **kwargs)
     elif method == "react":
         env = WikiEnv()
-        result = react_strategy(question, react_ex, env, max_steps=max_steps, temperature=temperature)
+        kwargs = {"query_label": query_label}
+        if react_instruction is not None:
+            kwargs["instruction"] = react_instruction
+        result = react_strategy(question, react_ex, env, max_steps=max_steps, temperature=temperature, **kwargs)
     elif method == "react_cotsc":
         env = WikiEnv()
-        result = react_to_cotsc(question, react_ex, cot_ex, env, max_steps=max_steps, n=n_sc, temperature=temperature)
+        kwargs = {"query_label": query_label}
+        if react_instruction is not None:
+            kwargs["instruction"] = react_instruction
+        result = react_to_cotsc(question, react_ex, cot_ex, env, max_steps=max_steps, n=n_sc, temperature=temperature, **kwargs)
         used_method = result["method"]
         backoff_triggered = result["backoff_triggered"]
     elif method == "cotsc_react":
         env = WikiEnv()
-        result = cotsc_to_react(question, react_ex, cot_ex, env, max_steps=max_steps, n=n_sc, temperature=temperature)
+        kwargs = {"query_label": query_label}
+        if react_instruction is not None:
+            kwargs["instruction"] = react_instruction
+        result = cotsc_to_react(question, react_ex, cot_ex, env, max_steps=max_steps, n=n_sc, temperature=temperature, **kwargs)
         used_method = result["method"]
         backoff_triggered = result["backoff_triggered"]
     else:

@@ -33,11 +33,24 @@ def parse_action(action_text: str) -> Action:
     return Action(kind=kind, arg=arg)
 
 
-def react(question: str, exemplars: str, env, max_steps: int = 7, temperature: float = 0.0) -> dict:
+def react(
+    question: str,
+    exemplars: str,
+    env,
+    max_steps: int = 7,
+    temperature: float = 0.0,
+    instruction: str = INSTRUCTION,
+    query_label: str = "Question",
+) -> dict:
     """Run the ReAct loop for one HotpotQA/FEVER question against `env`
     (a WikiEnv instance). Returns dict with keys: answer, n_steps, n_calls,
-    n_badcalls, trajectory."""
-    prompt = INSTRUCTION + exemplars + f"\nQuestion: {question}\n"
+    n_badcalls, trajectory.
+
+    `instruction`/`query_label` default to the HotpotQA convention (a
+    separate action-space preamble, "Question:" label). FEVER's official
+    exemplars (fever.json) bake their own instruction line in, so callers
+    pass instruction="" and query_label="Claim" for that domain."""
+    prompt = instruction + exemplars + f"\n{query_label}: {question}\n"
     n_calls = 0
     n_badcalls = 0
     answer = None

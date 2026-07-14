@@ -25,34 +25,45 @@ ACT_INSTRUCTION = """Solve a question answering task with actions. Action can be
 Here are some examples.
 """
 
+# FEVER's official exemplars (fever.json) bake their own instruction line
+# and use "Claim:" instead of "Question:" — no separate ACT_INSTRUCTION
+# needed since Fox/Stranger Things style exemplars already state the task.
+FEVER_ACT_INSTRUCTION = ""
 
-def standard(question: str, temperature: float = 0.0) -> dict:
+
+def standard(question: str, temperature: float = 0.0, domain: str = "hotpotqa") -> dict:
     """Direct question -> answer, no reasoning or actions."""
-    prompt = f"Answer the following question with a short answer.\nQuestion: {question}\nAnswer:"
+    if domain == "fever":
+        prompt = (
+            "Determine if the following Claim is SUPPORTS, REFUTES, or NOT ENOUGH INFO. "
+            f"Answer with exactly one of those three labels.\nClaim: {question}\nAnswer:"
+        )
+    else:
+        prompt = f"Answer the following question with a short answer.\nQuestion: {question}\nAnswer:"
     text = generate(prompt, stop=["\n"], temperature=temperature)[0]
     return {"answer": text.strip(), "n_calls": 1, "trajectory": prompt + text}
 
 
-def cot(question: str, exemplars: str, temperature: float = 0.0) -> tuple[str, str]:
+def cot(question: str, exemplars: str, temperature: float = 0.0, query_label: str = "Question") -> tuple[str, str]:
     """One CoT completion: Thought + Answer. Returns (answer, full_completion_text)."""
-    prompt = exemplars + f"Question: {question}\nThought:"
-    text = generate(prompt, stop=["\nQuestion:"], temperature=temperature)[0]
+    prompt = exemplars + f"{query_label}: {question}\nThought:"
+    text = generate(prompt, stop=[f"\n{query_label}:"], temperature=temperature)[0]
     answer = ""
     if "\nAnswer:" in text:
         answer = text.split("\nAnswer:", 1)[1].strip().split("\n")[0]
     return answer, prompt + text
 
 
-def cot_single(question: str, exemplars: str, temperature: float = 0.0) -> dict:
-    answer, trajectory = cot(question, exemplars, temperature)
+def cot_single(question: str, exemplars: str, temperature: float = 0.0, query_label: str = "Question") -> dict:
+    answer, trajectory = cot(question, exemplars, temperature, query_label=query_label)
     return {"answer": answer, "n_calls": 1, "trajectory": trajectory}
 
 
-def cot_sc(question: str, exemplars: str, n: int = 21, temperature: float = 0.7) -> dict:
+def cot_sc(question: str, exemplars: str, n: int = 21, temperature: float = 0.7, query_label: str = "Question") -> dict:
     """CoT with self-consistency: sample n reasoning chains, majority-vote
     the final answers."""
-    prompt = exemplars + f"Question: {question}\nThought:"
-    completions = generate(prompt, stop=["\nQuestion:"], n=n, temperature=temperature)
+    prompt = exemplars + f"{query_label}: {question}\nThought:"
+    completions = generate(prompt, stop=[f"\n{query_label}:"], n=n, temperature=temperature)
     answers = []
     for text in completions:
         answer = ""
@@ -75,10 +86,18 @@ def cot_sc(question: str, exemplars: str, n: int = 21, temperature: float = 0.7)
     }
 
 
-def act(question: str, exemplars: str, env, max_steps: int = 7, temperature: float = 0.0) -> dict:
+def act(
+    question: str,
+    exemplars: str,
+    env,
+    max_steps: int = 7,
+    temperature: float = 0.0,
+    instruction: str = ACT_INSTRUCTION,
+    query_label: str = "Question",
+) -> dict:
     """Act-only: Action/Observation loop with no Thought steps, using the
-    webact_simple6 exemplars prefixed with ACT_INSTRUCTION."""
-    prompt = ACT_INSTRUCTION + exemplars + f"Question: {question}\n"
+    webact_simple6/webact_simple3 exemplars prefixed with `instruction`."""
+    prompt = instruction + exemplars + f"{query_label}: {question}\n"
     n_calls = 0
     answer = None
     i = 1
@@ -115,8 +134,16 @@ def act(question: str, exemplars: str, env, max_steps: int = 7, temperature: flo
     }
 
 
-def react_strategy(question: str, exemplars: str, env, max_steps: int = 7, temperature: float = 0.0) -> dict:
-    return react(question, exemplars, env, max_steps=max_steps, temperature=temperature)
+def react_strategy(
+    question: str,
+    exemplars: str,
+    env,
+    max_steps: int = 7,
+    temperature: float = 0.0,
+    instruction: str = INSTRUCTION,
+    query_label: str = "Question",
+) -> dict:
+    return react(question, exemplars, env, max_steps=max_steps, temperature=temperature, instruction=instruction, query_label=query_label)
 
 
 def react_to_cotsc(
@@ -127,15 +154,17 @@ def react_to_cotsc(
     max_steps: int = 7,
     n: int = 21,
     temperature: float = 0.0,
+    instruction: str = INSTRUCTION,
+    query_label: str = "Question",
 ) -> dict:
     """ReAct -> CoT-SC: if ReAct exhausts max_steps without a Finish action
     (i.e. no confident answer), back off to CoT-SC."""
-    result = react(question, react_exemplars, env, max_steps=max_steps, temperature=temperature)
+    result = react(question, react_exemplars, env, max_steps=max_steps, temperature=temperature, instruction=instruction, query_label=query_label)
     if result["answer"]:
         result["backoff_triggered"] = False
         result["method"] = "react"
         return result
-    sc_result = cot_sc(question, cot_exemplars, n=n, temperature=0.7)
+    sc_result = cot_sc(question, cot_exemplars, n=n, temperature=0.7, query_label=query_label)
     sc_result["backoff_triggered"] = True
     sc_result["method"] = "cot_sc"
     sc_result["n_calls"] += result["n_calls"]
@@ -150,15 +179,17 @@ def cotsc_to_react(
     max_steps: int = 7,
     n: int = 21,
     temperature: float = 0.0,
+    instruction: str = INSTRUCTION,
+    query_label: str = "Question",
 ) -> dict:
     """CoT-SC -> ReAct: if the CoT-SC majority answer occurs in fewer than
     n/2 samples (low internal-knowledge confidence), back off to ReAct."""
-    sc_result = cot_sc(question, cot_exemplars, n=n, temperature=0.7)
+    sc_result = cot_sc(question, cot_exemplars, n=n, temperature=0.7, query_label=query_label)
     if sc_result["majority_count"] >= n / 2:
         sc_result["backoff_triggered"] = False
         sc_result["method"] = "cot_sc"
         return sc_result
-    react_result = react(question, react_exemplars, env, max_steps=max_steps, temperature=temperature)
+    react_result = react(question, react_exemplars, env, max_steps=max_steps, temperature=temperature, instruction=instruction, query_label=query_label)
     react_result["backoff_triggered"] = True
     react_result["method"] = "react"
     react_result["n_calls"] += sc_result["n_calls"]
