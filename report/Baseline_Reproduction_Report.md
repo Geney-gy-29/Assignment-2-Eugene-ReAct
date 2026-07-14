@@ -2,6 +2,8 @@
 
 Reduced-scale reproduction of Yao et al. (2023), *ReAct: Synergizing Reasoning and Acting in Language Models*, ICLR 2023. Model under test: `z-ai/glm-5.2` (via OpenRouter), in place of the paper's PaLM-540B. Results below are the n=10 gate runs (`results/raw/*.jsonl`); see `analysis/figures/` and `results/summary/accuracy_summary.csv` for the full data.
 
+**Repo:** [github.com/Geney-gy-29/Assignment-2-Eugene-ReAct](https://github.com/Geney-gy-29/Assignment-2-Eugene-ReAct)
+
 ## 1. Reproduction vs. Original
 
 ### HotpotQA (Exact Match, %)
@@ -37,6 +39,16 @@ Reduced-scale reproduction of Yao et al. (2023), *ReAct: Synergizing Reasoning a
 - **Known confound:** one manually-inspected ReAct HotpotQA trajectory (Irene Jacob / Stuart Bird question, logged in `AI_LOG.md`, Milestone 1 gate) showed the model missing its own Observation text and chasing a name variant for all 7 steps — a genuine multi-hop reasoning failure, not a pipeline bug, and a candidate qualitative failure mode worth one paragraph in the final write-up.
 
 **Caveat:** n=10/condition vs. the paper's 500-7405/condition. Treat this section as a pipeline-correctness check (methods run, backoffs fire, numbers are in a plausible range) rather than a statistically powered comparison. The n=100 scale-up is still pending.
+
+### Charts
+
+![HotpotQA: paper vs. reproduction](../analysis/figures/hotpotqa_paper_vs_repro.png)
+
+![FEVER: paper vs. reproduction](../analysis/figures/fever_paper_vs_repro.png)
+
+![Reproduction: HotpotQA vs. FEVER accuracy by method](../analysis/figures/hotpotqa_vs_fever.png)
+
+![Hybrid strategy backoff-trigger rates](../analysis/figures/backoff_rates.png)
 
 ## 2. Why token usage was front-loaded
 
