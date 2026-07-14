@@ -1,0 +1,10 @@
+openai>=1.40
+python-dotenv
+tenacity
+requests
+beautifulsoup4
+pandas
+matplotlib
+seaborn
+tqdm
+pytest

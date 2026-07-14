@@ -1,0 +1,42 @@
+Question: What is the elevation range for the area that the eastern sector of the Colorado orogeny extends into?
+Action 1: Search[Colorado orogeny]
+Observation 1: The Colorado orogeny was an episode of mountain building (an orogeny) in Colorado and surrounding areas.
+Action 2: Lookup[eastern sector]
+Observation 2: (Result 1 / 1) The eastern sector extends into the High Plains and is called the Central Plains orogeny.
+Action 3: Search[High Plains]
+Observation 3: High Plains refers to one of two distinct land regions:
+Action 4: Search[High Plains (United States)]
+Observation 4: The High Plains are a subregion of the Great Plains. From east to west, the High Plains rise in elevation from around 1,800 to 7,000 ft (550 to 2,130 m).[3]
+Action 5: Finish[1,800 to 7,000 ft]
+Question: Musician and satirist Allie Goertz wrote a song about the "The Simpsons" character Milhouse, who Matt Groening named after who?
+Action 1: Search[Milhouse]
+Observation 1: Milhouse Mussolini Van Houten is a recurring character in the Fox animated television series The Simpsons voiced by Pamela Hayden and created by Matt Groening.
+Action 2: Lookup[named after]
+Observation 2: (Result 1 / 1) Milhouse was named after U.S. president Richard Nixon, whose middle name was Milhous. 
+Action 3: Finish[Richard Nixon]
+Question: Which documentary is about Finnish rock groups, Adam Clayton Powell or The Saimaa Gesture?
+Action 1: Search[Adam Clayton Powell]
+Observation 1: Could not find [Adam Clayton Powell]. Similar: ['Adam Clayton Powell III', 'Seventh Avenue (Manhattan)', 'Adam Clayton Powell Jr. State Office Building', 'Isabel Washington Powell', 'Adam Powell', 'Adam Clayton Powell (film)', 'Giancarlo Esposito'].
+Action 2: Search[Adam Clayton Powell (film)]
+Observation 2: Adam Clayton Powell is a 1989 American documentary film directed by Richard Kilberg.
+The film is about the rise and fall of influential African-American politician Adam Clayton Powell Jr.[3][4] It was later aired as part of the PBS series The American Experience.
+Action 3: Finish[The Saimaa Gesture]
+Question: What profession does Nicholas Ray and Elia Kazan have in common?
+Action 1: Search[Nicholas Ray]
+Observation 1: Nicholas Ray (born Raymond Nicholas Kienzle Jr., August 7, 1911 – June 16, 1979) was an American film director, screenwriter, and actor best known for the 1955 film Rebel Without a Cause.
+Action 2: Search[Elia Kazan]
+Observation 2: Elia Kazan was an American film and theatre director, producer, screenwriter and actor.
+Action 3: Finish[director, screenwriter, actor]
+Question: Which magazine was started first Arthur's Magazine or First for Women?
+Action 1: Search[Arthur's Magazine]
+Observation 1: Arthur's Magazine (1844-1846) was an American literary periodical published in Philadelphia in the 19th century. 
+Action 2: Search[First for Women]
+Observation 2: First for Women is a woman's magazine published by Bauer Media Group in the USA.[1] The magazine was started in 1989. 
+Action 3: Finish[Arthur's Magazine]
+Question: Were Pavel Urysohn and Leonid Levin known for the same type of work?
+Action 1: Search[Pavel Urysohn]
+Observation 1: Pavel Samuilovich Urysohn (February 3, 1898 â August 17, 1924) was a Soviet mathematician who is best known for his contributions in dimension theory.
+Action 2: Search[Leonid Levin]
+Observation 2: Leonid Anatolievich Levin is a Soviet-American mathematician and computer scientist. 
+Action 3: Finish[yes]
+
