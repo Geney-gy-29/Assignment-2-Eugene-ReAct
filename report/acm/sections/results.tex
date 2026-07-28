@@ -1,0 +1,67 @@
+\subsection{Baseline}
+\label{sec:results}
+Table~\ref{tab:baseline} reports the repaired $n{=}100$ baseline (Stage A)
+against the paper and against the original Assignment-2 $n{=}10$ gate. The
+token-truncation fix alone (Section~2.2) accounts for the largest single
+movement: FEVER Standard rises from 20\% ($n{=}10$) to 64\% ($n{=}100$),
+and FEVER ReAct from 30\% to 72\% --- both now \emph{above} the paper's
+reported PaLM-540B numbers rather than dramatically below them, reversing
+the Assignment-2 conclusion that our model systematically underperforms
+the paper on claim verification. Bootstrap 95\% confidence intervals are
+wide (roughly $\pm 10$ points) at this sample size, underscoring that the
+$n{=}10$ trends were not merely noisy but frequently non-representative.
+
+\begin{table}[t]
+\caption{Baseline accuracy: paper (PaLM-540B) vs.\ Assignment-2 $n{=}10$
+gate vs.\ this paper's repaired $n{=}100$ run, with bootstrap 95\% CIs.}
+\label{tab:baseline}
+\centering\small
+\begin{tabular}{@{}llrrr@{}}
+\toprule
+Domain & Method & Paper & A2 ($n{=}10$) & A3 ($n{=}100$, 95\% CI) \\
+\midrule
+HotpotQA & Standard & 28.7 & 30.0 & 36.0 [27, 46] \\
+HotpotQA & CoT      & 29.4 & 60.0 & 46.0 [36, 56] \\
+HotpotQA & Act      & 25.7 & 70.0 & 42.0 [32, 52] \\
+HotpotQA & ReAct    & 27.4 & 60.0 & 40.0 [30, 50] \\
+FEVER    & Standard & 57.1 & 20.0 & 64.0 [54, 73] \\
+FEVER    & CoT      & 56.3 & 40.0 & 65.0 [55, 74] \\
+FEVER    & Act      & 58.9 & 40.0 & 65.0 [56, 74] \\
+FEVER    & ReAct    & 60.9 & 30.0 & 72.0 [63, 81] \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Signal validation}
+Table~\ref{tab:signals} reports precision lift over the domain base error
+rate for each signal, computed from the diagnostic pass on plain ReAct
+(Section~\ref{sec:setup}). $S_1$ is perfectly precise wherever it fires
+(by construction: an exhausted trajectory has no answer) but has very low
+recall on FEVER, quantitatively confirming the limitation identified in
+Section~3. $S_2$ underperforms its own base rate on HotpotQA and is barely
+above it on FEVER --- evidence \emph{count} is not a reliable proxy for
+evidence \emph{quality}, since several genuinely single-hop FEVER claims
+are correctly resolved from one retrieved passage. $S_3$ is the only
+signal with consistent positive lift on both domains.
+
+\begin{table}[t]
+\caption{Per-signal fire rate, precision, and precision lift over base
+error rate (ReAct, $n{=}100$, diagnostic pass).}
+\label{tab:signals}
+\centering\small
+\begin{tabular}{@{}llrrrr@{}}
+\toprule
+Domain & Signal & Fire \% & Precision \% & Lift \\
+\midrule
+HotpotQA & $S_1$ (paper) & 32.0 & 100.0 & 1.68$\times$ \\
+HotpotQA & $S_2$ ($\tau_0{=}2$) & 6.0 & 50.0 & 0.67$\times$ \\
+HotpotQA & $S_3$ & 14.0 & 57.1 & 0.90$\times$ \\
+HotpotQA & $S_1 \lor S_3$ & 44.0 & 86.4 & 1.45$\times$ \\
+\addlinespace
+FEVER & $S_1$ (paper) & 1.0 & 100.0 & 3.57$\times$ \\
+FEVER & $S_2$ ($\tau_0{=}2$) & 80.0 & 30.0 & 1.07$\times$ \\
+FEVER & $S_3$ & 14.0 & 50.0 & 1.79$\times$ \\
+FEVER & $S_1 \lor S_3$ & 15.0 & 53.3 & 1.90$\times$ \\
+\bottomrule
+\end{tabular}
+\end{table}

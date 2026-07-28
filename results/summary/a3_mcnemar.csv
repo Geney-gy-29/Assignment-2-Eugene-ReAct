@@ -1,0 +1,5 @@
+domain,method,arm,vs,delta_pp,n01,n10,p_value
+fever,react_cotsc,s1s3,paper,0.0,9,9,1.0
+hotpotqa,react_cotsc,s1s3,paper,3.0,4,1,0.375
+fever,cotsc_react,cga,paper,1.0,3,2,1.0
+hotpotqa,cotsc_react,cga,paper,1.0,2,1,1.0

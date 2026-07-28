@@ -1,0 +1,38 @@
+Yao et al.~\cite{yao2023react} introduce ReAct, which interleaves reasoning
+traces (\emph{Thought}) with actions (\emph{Search}, \emph{Lookup},
+\emph{Finish}) against a Wikipedia-backed environment. Section 3.3 of the
+paper additionally proposes two hybrid strategies that combine ReAct with
+chain-of-thought self-consistency (CoT-SC): \emph{ReAct$\to$CoT-SC} backs off
+from ReAct to a majority vote over $n$ independent CoT samples, and
+\emph{CoT-SC$\to$ReAct} does the reverse. Both directions require a
+\emph{trigger}: a rule for deciding when the first strategy has failed and
+the second should be invoked instead.
+
+For ReAct$\to$CoT-SC, the paper's trigger is a single condition: ReAct
+exhausted its step budget without ever emitting a \texttt{Finish[\ldots]}
+action. This is a reasonable proxy for one failure mode --- the agent
+looping without converging --- but it says nothing about episodes in which
+ReAct \emph{does} emit \texttt{Finish}, just on the basis of too little or
+the wrong evidence.
+
+This paper reports on a modification of that single entry point. Building
+on a reduced-scale reproduction of the full ReAct pipeline (Assignment 2 of
+this course), we show with trajectory-level evidence that the paper's
+trigger is domain-dependent in a way that matters: it detects failures on
+one of our two evaluation domains and is essentially inert on the other.
+We generalize the trigger into a small set of independently-validated
+signals, ablate them against an oracle correctness label \emph{before}
+spending compute on a full comparison, and report both the positive and
+negative results that came out of that validation step.
+
+Our contributions are: (1) a quantified account, at $n=100$ per domain, of
+\emph{why} the paper's back-off trigger under-fires on FEVER-style
+claim verification; (2) three back-off signals evaluated independently
+for precision lift over the domain's base error rate, showing that
+evidence-count alone is not a useful proxy for evidence quality despite
+being the cheaper signal to compute; (3) an entailment-verification signal
+that is a useful proxy, at the cost of one additional LLM call per
+question; and (4) an accuracy-vs-cost analysis of the resulting hybrid,
+including a corrected token-truncation bug in the underlying reproduction
+that on its own changed FEVER accuracy by a large margin, reported
+separately from the trigger improvement's own credit.

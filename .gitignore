@@ -6,3 +6,7 @@ data/cache/
 results/raw/*.jsonl
 *.egg-info/
 .pytest_cache/
+# [A3-IMPROVEMENT]
+tools/
+results/gate/
+report/acm/*.pdf.bak

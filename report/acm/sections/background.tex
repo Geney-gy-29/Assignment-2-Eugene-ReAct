@@ -1,0 +1,41 @@
+\subsection{ReAct and the reproduction pipeline}
+Our reproduction (Assignment 2) reimplements the paper's WikiEnv
+(Wikipedia search/lookup with response caching), the ReAct/CoT/Act/Standard
+prompting strategies, and both section-3.3 hybrids, evaluated on the same
+HotpotQA and FEVER dev-set questions the paper uses (a deterministic
+\texttt{random.Random(233)} shuffle prefix of the official splits, matching
+the paper's own sampling code). \texttt{z-ai/glm-5.2} (via OpenRouter)
+stands in for the paper's PaLM-540B.
+
+\subsection{Two bugs found and fixed before this study}
+Reading the reproduction's trajectory logs in preparation for this paper
+surfaced two defects in the underlying pipeline, both of which had to be
+fixed before any comparison between the paper's trigger and a generalized
+one could be trusted.
+
+\textbf{Token truncation.} The completion length cap was 256 tokens. At
+that length, completions were sometimes cut off before the model emitted
+its \texttt{Answer:} line, producing empty predictions; because the CoT-SC
+self-consistency vote silently drops empty strings, this also shrank the
+effective sample size of the majority vote without raising an error. We
+raised the cap to 512 tokens for every arm reported in this paper
+(baseline and improved alike, so the comparison stays apples-to-apples).
+This single change was responsible for a large share of the movement
+between the $n{=}10$ Assignment-2 numbers and the $n{=}100$ baseline
+reported here: FEVER Standard rose from 20\% to 64\%, and FEVER ReAct from
+30\% to 72\% (Table~\ref{tab:baseline}). We attribute none of this movement
+to the trigger improvement itself.
+
+\textbf{No cost accounting.} \texttt{response.usage} was discarded
+entirely, so no accuracy-vs-cost analysis was possible. We added
+token/cost tracking (Section~\ref{sec:tradeoff}).
+
+\subsection{Reasoning-model gotchas preserved}
+\texttt{z-ai/glm-5.2} is a reasoning model with two documented failure
+modes that must not regress: its hidden reasoning phase can silently
+consume the entire token budget unless explicitly disabled, and the
+provider silently caps server-side \texttt{n} to 1 regardless of the
+requested sample count for self-consistency sampling. Both mitigations
+(explicit \texttt{reasoning: \{enabled: false\}}; manual $n$-way
+fan-out via independent calls) were re-verified live before any of the
+runs in this paper and are unchanged from the Assignment-2 client.

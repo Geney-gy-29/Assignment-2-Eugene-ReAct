@@ -8,12 +8,29 @@ upstream) to reduce repeated Wikipedia load across reruns."""
 
 import json
 import os
+import threading
 
 import requests
 from bs4 import BeautifulSoup
 
 _CACHE_PATH = os.path.join(os.path.dirname(__file__), "..", "..", "data", "cache", "wiki_cache.json")
 _HEADERS = {"User-Agent": "ReAct-Reproduction-Research/1.0 (educational assignment; contact: local)"}
+
+# [A3-IMPROVEMENT] run.py can now process questions in parallel (--workers).
+# Each question builds its own WikiEnv, so without this the concurrent
+# read-modify-write of the shared on-disk cache would interleave and could
+# truncate/corrupt wiki_cache.json. One shared cache dict + one lock also
+# means a page fetched by one worker is reused by the others.
+_CACHE_LOCK = threading.Lock()
+_SHARED_CACHE: dict | None = None
+
+
+def _get_shared_cache() -> dict:
+    global _SHARED_CACHE
+    with _CACHE_LOCK:
+        if _SHARED_CACHE is None:
+            _SHARED_CACHE = _load_cache()
+        return _SHARED_CACHE
 
 
 def _load_cache() -> dict:
@@ -48,7 +65,7 @@ class WikiEnv:
     matches, matching the official WikiEnv semantics."""
 
     def __init__(self):
-        self._cache = _load_cache()
+        self._cache = _get_shared_cache()
         self.page: str | None = None
         self.lookup_keyword: str | None = None
         self.lookup_list: list[str] | None = None
@@ -72,8 +89,9 @@ class WikiEnv:
 
     def search(self, entity: str) -> str:
         cache_key = f"search::{entity.lower()}"
-        if cache_key in self._cache:
-            cached = self._cache[cache_key]
+        with _CACHE_LOCK:
+            cached = self._cache.get(cache_key)
+        if cached is not None:
             self.page = cached["page"]
             self.lookup_keyword = None
             self.lookup_list = None
@@ -81,8 +99,9 @@ class WikiEnv:
             return cached["observation"]
 
         observation, page = self._search_live(entity)
-        self._cache[cache_key] = {"observation": observation, "page": page}
-        _save_cache(self._cache)
+        with _CACHE_LOCK:
+            self._cache[cache_key] = {"observation": observation, "page": page}
+            _save_cache(self._cache)
         self.page = page
         self.lookup_keyword = None
         self.lookup_list = None

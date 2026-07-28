@@ -1,0 +1,9 @@
+domain,signal,fire_rate,precision,recall,n_fired
+fever,s1_exhausted,1.0,100.0,3.6,1
+fever,s2_thin_evidence,80.0,30.0,85.7,80
+fever,s3_unsupported,14.0,50.0,25.0,14
+fever,cga_union,83.0,30.1,89.3,83
+hotpotqa,s1_exhausted,32.0,100.0,53.3,32
+hotpotqa,s2_thin_evidence,6.0,50.0,5.0,6
+hotpotqa,s3_unsupported,14.0,57.1,13.3,14
+hotpotqa,cga_union,50.0,82.0,68.3,50

@@ -1,0 +1,17 @@
+file,domain,method,trigger,n,accuracy,ci_lo,ci_hi,backoff_rate,mean_calls,cost_usd,cost_per_q,errors
+fever_act_n100,fever,act,paper,100,65.0,56.0,74.0,0.0,20.98,1.1836,0.01184,0
+fever_cot_n100,fever,cot,paper,100,65.0,55.0,74.0,0.0,7.72,0.1463,0.00146,0
+fever_cotscreact_cga_n100,fever,cotsc_react,cga,100,66.0,56.0,75.0,2.0,40.07,0.8022,0.00802,0
+fever_cotscreact_paper_n100,fever,cotsc_react,paper,100,65.0,56.0,74.0,7.0,41.13,0.9028,0.00903,0
+fever_react_n100,fever,react,paper,100,72.0,63.0,81.0,0.0,28.57,2.082,0.02082,0
+fever_reactcotsc_paper_n100,fever,react_cotsc,paper,100,67.0,58.0,76.0,3.0,22.01,1.6363,0.01636,0
+fever_reactcotsc_s1s3_n100,fever,react_cotsc,s1s3,100,67.0,58.0,76.0,22.0,37.61,2.094,0.02094,0
+fever_standard_n100,fever,standard,paper,100,64.0,54.0,73.0,0.0,7.72,0.0308,0.00031,0
+hotpotqa_act_n100,hotpotqa,act,paper,100,42.0,32.0,52.0,0.0,33.8,3.3427,0.03343,0
+hotpotqa_cot_n100,hotpotqa,cot,paper,100,46.0,36.0,56.0,0.0,7.72,0.3637,0.00364,0
+hotpotqa_cotscreact_cga_n100,hotpotqa,cotsc_react,cga,100,48.0,38.0,58.0,29.0,53.18,3.9448,0.03945,0
+hotpotqa_cotscreact_paper_n100,hotpotqa,cotsc_react,paper,100,47.0,37.0,57.0,24.0,49.99,3.5227,0.03523,0
+hotpotqa_react_n100,hotpotqa,react,paper,100,40.0,30.0,50.0,0.0,44.9,6.0239,0.06024,1
+hotpotqa_reactcotsc_paper_n100,hotpotqa,react_cotsc,paper,100,46.0,36.0,56.0,36.0,52.48,6.293,0.06293,0
+hotpotqa_reactcotsc_s1s3_n100,hotpotqa,react_cotsc,s1s3,100,49.0,39.0,59.0,41.0,58.44,6.3997,0.064,0
+hotpotqa_standard_n100,hotpotqa,standard,paper,100,36.0,27.0,46.0,0.0,7.72,0.0353,0.00035,0

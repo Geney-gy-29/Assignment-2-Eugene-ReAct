@@ -1,0 +1,20 @@
+Yao et al.'s ReAct$\to$CoT-SC back-off trigger encodes a single failure
+mode --- step exhaustion --- and, we show, misses a second, equally real
+failure mode: premature confidence on thin evidence, which dominates
+FEVER-style claim verification in our reproduction. Generalizing the
+trigger is not free, however: the naive generalization (counting
+retrieved evidence) does not work, contributing negligible or negative
+precision lift over the base error rate on both domains we tested. An
+entailment-verification signal, at the cost of one additional LLM call
+per question, does work, and combined with the paper's original
+step-exhaustion condition raises precision substantially on HotpotQA while
+recovering some of FEVER's blind spot.
+
+More broadly, this study is a case for validating a proposed signal
+against an oracle label \emph{before} committing compute to a full
+ablation: the negative result for evidence-count thinness was cheap to
+obtain and, once obtained, changed which arms were worth running at full
+scale. We report that negative result alongside the positive one, since a
+generalization of a paper's mechanism that silently discards its own
+failed hypotheses is less useful to future work than one that documents
+what did not generalize and why.

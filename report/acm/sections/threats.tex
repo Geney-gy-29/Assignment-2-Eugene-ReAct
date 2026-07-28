@@ -1,0 +1,22 @@
+The full ablation matrix originally scoped for this study was reduced in
+response to the signal-validation pass (Section~\ref{sec:setup}): once
+$S_2$ was shown to add negligible precision over the base error rate on
+both domains, we chose not to spend the additional compute running the
+$S_2$-containing composite arms at full scale, reporting their signal
+statistics from the free diagnostic pass instead of from a paid hybrid
+run. This is disclosed rather than silently narrowed: no result in this
+paper claims evidence for an $S_2$-containing arm beyond the diagnostic
+precision-lift figures already reported.
+
+Sample size ($n{=}100$/domain) is an order of magnitude below the paper's
+own HotpotQA evaluation ($n{=}500$--$7405$ across its result tables), a
+reduced-scale choice carried over from the parent reproduction under the
+same time/cost budget. Bootstrap confidence intervals in
+Table~\ref{tab:baseline} make this uncertainty explicit rather than
+treating point estimates as final.
+
+The entailment verifier ($S_3$) is itself an LLM call from the same
+model family being evaluated; a systematic verifier bias (e.g.\ toward
+``insufficient'' on any answer it would itself phrase differently) cannot
+be fully ruled out without a second, independent judge model, which was
+out of scope for this budget.

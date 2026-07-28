@@ -1,0 +1,65 @@
+We decompose the ReAct$\to$CoT-SC trigger into three independent signals
+over a completed ReAct trajectory $\tau = (a_1, o_1, \ldots, a_k, o_k,
+\hat{y})$, where $a_i$ is the $i$-th action, $o_i$ its observation, and
+$\hat{y}$ the committed answer (or $\bot$ if $\tau$ exhausted its step
+budget without a \texttt{Finish}).
+
+\subsection{Signal 1: step exhaustion (paper's original condition)}
+\[
+S_1(\tau) = \mathbb{1}[\hat{y} = \bot]
+\]
+Retained unmodified as the control arm.
+
+\subsection{Signal 2: evidence thinness}
+Define an observation $o_i$ as \emph{informative} if it is not a failed
+search (``Could not find \ldots''), an exhausted lookup (``No more
+results.''), or an invalid-action message:
+\[
+\mathrm{inf}(\tau) = \sum_{i=1}^{k} \mathbb{1}[o_i \text{ is informative}]
+\]
+\[
+S_2^{\tau_0}(\tau) = \mathbb{1}[\hat{y} \neq \bot] \cdot
+  \mathbb{1}[\mathrm{inf}(\tau) < \tau_0]
+\]
+with threshold $\tau_0$ (ablated at $\tau_0 \in \{1, 2, 3\}$). $S_2$ is
+restricted to non-exhausted trajectories so the three signals are
+disjoint by construction. Failed searches are excluded from
+$\mathrm{inf}(\tau)$ deliberately: a retrieval attempt that returned
+nothing tells the agent its query missed, and is not evidence for the
+final answer.
+
+\subsection{Signal 3: entailment verification}
+A single additional LLM call, shown \emph{only} the informative
+observations and the proposed answer (not the model's own \emph{Thought}
+steps, so the check is grounded in retrieved evidence rather than a replay
+of the same reasoning that produced $\hat y$), asks whether the evidence
+sufficiently supports the answer:
+\[
+S_3(\tau) = \mathbb{1}[\hat{y} \neq \bot] \cdot
+  \mathbb{1}[\mathrm{Verify}(q, \hat{y}, \{o_i : o_i \text{ informative}\})
+  = \texttt{INSUFFICIENT}]
+\]
+This costs exactly one extra call per question, versus the $n{=}21$ calls
+of the CoT-SC arm it gates.
+
+\subsection{Composite triggers}
+We write $S_1 \lor S_2 \lor S_3$ for the full disjunction (``CGA'',
+Confidence-Gated Adaptive back-off) and evaluate sub-combinations as an
+ablation (Section~\ref{sec:ablation}).
+
+\subsection{Reverse direction: CoT-SC$\to$ReAct}
+The paper's trigger for the reverse hybrid is
+$\mathrm{maj}(\tau) < n/2$, the count of the most common vote among $n$
+CoT samples. This reads only the top bin of the vote distribution and
+cannot distinguish a clean two-way split from broad scatter across many
+distinct answers, though both can fall below $n/2$. We additionally
+compute the normalized Shannon entropy of the full vote distribution,
+\[
+H(\tau) = \frac{-\sum_{v} p_v \log p_v}{\log n}, \qquad
+  p_v = \frac{\text{count of answer } v}{n},
+\]
+normalized by $\log n$ (samples), not $\log|\{v\}|$ (distinct answers) ---
+the latter rescales \emph{every} uniform vote to exactly 1.0 regardless of
+how many distinct answers it spans, collapsing the discrimination the
+signal is meant to provide. A generalized reverse trigger backs off when
+$\mathrm{maj}(\tau) < n/2$ \emph{or} $H(\tau) > 0.5$.

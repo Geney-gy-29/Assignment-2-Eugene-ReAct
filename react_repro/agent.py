@@ -54,6 +54,11 @@ def react(
     n_calls = 0
     n_badcalls = 0
     answer = None
+    # [A3-IMPROVEMENT] Record the action/observation trace so back-off
+    # triggers (react_repro/backoff.py) can reason about evidence quality
+    # rather than only step count. No behavioural change to the loop.
+    actions: list[str] = []
+    observations: list[str] = []
 
     for i in range(1, max_steps + 1):
         n_calls += 1
@@ -78,17 +83,22 @@ def react(
             action = parse_action(action_text)
         except ValueError:
             obs = f"Invalid action: {action_text}"
+            actions.append(action_text)
+            observations.append(obs)
             prompt += f"Thought {i}: {thought}\nAction {i}: {action_text}\nObservation {i}: {obs}\n"
             continue
 
         if action.kind == "finish":
             answer = action.arg
+            actions.append(action_text)
             step_str = f"Thought {i}: {thought}\nAction {i}: {action_text}\n"
             prompt += step_str
             break
 
         obs = env.step(action.kind, action.arg)
         obs = obs.replace("\n", "")
+        actions.append(action_text)
+        observations.append(obs)
         step_str = f"Thought {i}: {thought}\nAction {i}: {action_text}\nObservation {i}: {obs}\n"
         prompt += step_str
 
@@ -98,4 +108,10 @@ def react(
         "n_calls": n_calls,
         "n_badcalls": n_badcalls,
         "trajectory": prompt,
+        # [A3-IMPROVEMENT] Signal inputs for the generalized back-off trigger.
+        # `exhausted` is the paper's original §3.3 condition, made explicit
+        # instead of being inferred from an empty answer string.
+        "exhausted": answer is None,
+        "actions": actions,
+        "observations": observations,
     }

@@ -1,0 +1,29 @@
+To identify a concrete, data-backed entry point rather than an
+a-priori guess, we read the action/observation traces of every
+Assignment-2 $n{=}10$ ReAct episode on both domains.
+
+\textbf{FEVER: premature confidence, invisible to the paper's trigger.}
+Eight of ten ReAct episodes terminated after exactly one \texttt{Search}
+followed immediately by \texttt{Finish}. The paper's trigger --- step
+exhaustion without a \texttt{Finish} --- fired on \emph{none} of these,
+because the model always did commit to an answer; it simply committed too
+early. On the six episodes with gold label \texttt{NOT ENOUGH INFO}, the
+model predicted \texttt{REFUTES} in all six: presented with a single,
+often only tangentially relevant, retrieved passage, the model appears to
+default to a confident negative rather than expressing uncertainty.
+
+\textbf{HotpotQA: the paper's trigger works as intended.} By contrast,
+every failing HotpotQA ReAct episode we inspected burned the full 7-step
+budget without reaching \texttt{Finish}; one episode reissued
+\texttt{Search[Hardley Flood]} verbatim after already having loaded that
+page. Here the paper's trigger fires correctly.
+
+This asymmetry is the entry point for this paper: the trigger is not
+wrong, but it is \emph{incomplete}. It encodes only the failure mode most
+salient in multi-hop QA (searching and re-searching without converging)
+and has no mechanism for a claim-verification-style failure (converging
+too fast on too little). Because both are genuine ReAct failure modes,
+and the paper's own framing (Section 3.3) presents the trigger as a
+general recipe rather than a HotpotQA-specific one, we treat this as a
+limitation of the general hybrid mechanism rather than of the paper's
+HotpotQA results specifically.

@@ -11,6 +11,9 @@ back-off strategies described in the paper (Yao et al., ICLR 2023, section
 from collections import Counter
 
 from react_repro.agent import INSTRUCTION, parse_action, react
+# [A3-IMPROVEMENT] Default triggers mirror the paper's section 3.3 conditions,
+# so unparametrized calls behave exactly as in Assignment 2.
+from react_repro.backoff import s1_exhausted, sc_lowconf_paper
 from react_repro.llm import generate
 
 # The official ReAct repo's prompts_naive.json ships webact_simple6 exemplars
@@ -156,18 +159,31 @@ def react_to_cotsc(
     temperature: float = 0.0,
     instruction: str = INSTRUCTION,
     query_label: str = "Question",
+    trigger=None,
 ) -> dict:
-    """ReAct -> CoT-SC: if ReAct exhausts max_steps without a Finish action
-    (i.e. no confident answer), back off to CoT-SC."""
+    """ReAct -> CoT-SC: back off to CoT-SC when the trigger fires.
+
+    [A3-IMPROVEMENT] `trigger` is a callable over the ReAct result dict. It
+    defaults to `backoff.s1_exhausted`, which is the paper's original section
+    3.3 condition (ReAct exhausted max_steps without a Finish), so the default
+    behaviour is unchanged from Assignment 2. Passing another entry from
+    `backoff.TRIGGERS` selects an ablation arm.
+    """
+    if trigger is None:
+        trigger = s1_exhausted
     result = react(question, react_exemplars, env, max_steps=max_steps, temperature=temperature, instruction=instruction, query_label=query_label)
-    if result["answer"]:
+    if not trigger(result, question=question, query_label=query_label):
         result["backoff_triggered"] = False
         result["method"] = "react"
         return result
+    react_calls = result["n_calls"]
     sc_result = cot_sc(question, cot_exemplars, n=n, temperature=0.7, query_label=query_label)
     sc_result["backoff_triggered"] = True
     sc_result["method"] = "cot_sc"
-    sc_result["n_calls"] += result["n_calls"]
+    sc_result["n_calls"] += react_calls
+    # Keep the discarded ReAct attempt for the trigger-diagnostics analysis.
+    sc_result["react_answer"] = result["answer"]
+    sc_result["n_steps"] = result["n_steps"]
     return sc_result
 
 
@@ -181,11 +197,19 @@ def cotsc_to_react(
     temperature: float = 0.0,
     instruction: str = INSTRUCTION,
     query_label: str = "Question",
+    sc_trigger=None,
 ) -> dict:
-    """CoT-SC -> ReAct: if the CoT-SC majority answer occurs in fewer than
-    n/2 samples (low internal-knowledge confidence), back off to ReAct."""
+    """CoT-SC -> ReAct: back off to ReAct when the CoT-SC vote is low-confidence.
+
+    [A3-IMPROVEMENT] `sc_trigger` defaults to the paper's condition (majority
+    answer occurs in fewer than n/2 samples). `backoff.SC_TRIGGERS["cga"]`
+    additionally backs off on a high-entropy vote, which the bare majority
+    threshold cannot see.
+    """
+    if sc_trigger is None:
+        sc_trigger = sc_lowconf_paper
     sc_result = cot_sc(question, cot_exemplars, n=n, temperature=0.7, query_label=query_label)
-    if sc_result["majority_count"] >= n / 2:
+    if not sc_trigger(sc_result, n):
         sc_result["backoff_triggered"] = False
         sc_result["method"] = "cot_sc"
         return sc_result

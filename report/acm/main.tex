@@ -1,0 +1,88 @@
+% [A3-IMPROVEMENT] ACM sigconf report for the Confidence-Gated Adaptive
+% Back-off improvement to Yao et al. (ICLR 2023), section 3.3.
+\documentclass[sigconf,nonacm]{acmart}
+
+\settopmatter{printacmref=false}
+\renewcommand\footnotetextcopyrightpermission[1]{}
+\pagestyle{plain}
+
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{amsmath}
+
+\begin{document}
+
+\title{Confidence-Gated Adaptive Back-off: Generalizing ReAct's Hybrid
+Trigger Beyond Step Exhaustion}
+
+\author{Eugene}
+\affiliation{%
+  \institution{Assignment 3 --- Paper Improvement Exploration}
+  \country{}
+}
+\email{}
+
+\begin{abstract}
+Yao et al.\ (ICLR 2023) propose a hybrid strategy that backs off from ReAct
+to CoT self-consistency when ReAct exhausts its step budget without
+committing to an answer. We show, using a reduced-scale reproduction on
+\texttt{z-ai/glm-5.2}, that this single condition detects only one failure
+mode --- the agent getting \emph{stuck} --- and is structurally blind to the
+opposite failure: the agent stopping \emph{prematurely} with unwarranted
+confidence. On FEVER, 8 of 10 manually inspected ReAct failures terminated
+after a single search and an immediate \texttt{Finish}; the paper's trigger
+fired on none of them. We decompose the trigger into three signals ---
+step exhaustion (the original condition), evidence thinness, and an
+LLM-verified entailment check --- and evaluate each independently against
+an oracle correctness label before committing to an ablation. Evidence
+count is found \emph{not} to be a useful proxy for evidence quality
+(1.07$\times$ precision lift over base rate on FEVER, 0.67$\times$ on
+HotpotQA), while the verifier signal is (1.79$\times$ on FEVER; combined
+with step-exhaustion, 86.4\% precision on HotpotQA). We report the
+resulting ablation with paired significance testing and an explicit
+accuracy-vs-cost trade-off, including a negative result we chose \emph{not}
+to scale up once the data ruled it out.
+\end{abstract}
+
+\maketitle
+
+\section{Introduction}
+% context, the reproduction this builds on, contribution statement
+\input{sections/intro.tex}
+
+\section{Background and Reproduction Baseline}
+% brief ReAct recap; A2 n=10 baseline; the two bugs fixed (max_tokens, token accounting)
+\input{sections/background.tex}
+
+\section{Limitation Analysis}
+% the FEVER 8/10 premature-Finish finding; HotpotQA step-burn finding; why this
+% is the entry point
+\input{sections/limitation.tex}
+
+\section{Method: Confidence-Gated Adaptive Back-off}
+% formal S1/S2/S3 definitions, entropy margin, sufficiency predicate
+\input{sections/method.tex}
+
+\section{Experimental Setup}
+\label{sec:setup}
+\input{sections/setup.tex}
+
+\section{Results}
+\input{sections/results.tex}
+
+\section{Ablation Study}
+\input{sections/ablation.tex}
+
+\section{Cost--Accuracy Trade-off}
+\input{sections/tradeoff.tex}
+
+\section{Threats to Validity}
+\input{sections/threats.tex}
+
+\section{Conclusion}
+\input{sections/conclusion.tex}
+
+\bibliographystyle{ACM-Reference-Format}
+\bibliography{refs}
+
+\end{document}

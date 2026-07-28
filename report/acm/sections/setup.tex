@@ -1,0 +1,47 @@
+\subsection{Data}
+Both domains use the same $n{=}100$ item samples as the Assignment-2
+reproduction: a deterministic prefix of a \texttt{random.Random(233)}
+shuffle of the official HotpotQA distractor-split dev set (7405 items) and
+the official FEVER \texttt{paper\_dev} split, matching the sampling
+procedure in the paper's own release code. Arms are evaluated on
+\emph{identical} items within a domain, which is required for the paired
+significance test in Section~\ref{sec:results}.
+
+\subsection{Model and inference settings}
+\texttt{z-ai/glm-5.2} via OpenRouter, unchanged from the baseline
+reproduction so that any measured difference is attributable to the
+trigger, not to a model swap. Temperature 0.0 for all deterministic
+components (ReAct, CoT, Act, Standard, the entailment verifier); 0.7 for
+CoT-SC sampling ($n{=}5$ per hybrid call in the ablation, reduced from the
+paper's/A2's $n{=}21$ to keep the ablation's per-arm cost proportionate to
+its marginal evidentiary value --- see Section~\ref{sec:tradeoff}).
+Maximum completion length 512 tokens throughout (Section~2.2).
+Wikipedia search/lookup responses are cached across runs; the cache is
+shared and lock-protected across the parallel worker pool used for the
+$n{=}100$ runs.
+
+\subsection{Signal validation before ablation}
+Rather than committing directly to a full ablation across every possible
+trigger combination, we first ran plain ReAct at $n{=}100$ on both domains
+with all three signals evaluated \emph{independently} against an oracle
+label (whether ReAct's own answer was correct). We score each signal by
+\emph{precision lift}: its precision (fraction of firings on a wrong
+answer) divided by the domain's base error rate, since a signal that
+fires on everything trivially achieves precision equal to the base rate
+and contributes nothing. This validation pass is reported in full in
+Section~\ref{sec:ablation} and determined which composite arms were worth
+the additional cost of a full hybrid run.
+
+\subsection{Arms}
+\textbf{Baseline (Stage A):} Standard, CoT, Act, ReAct at $n{=}100$ on both
+domains, repaired ($\mathrm{max\_tokens}{=}512$) but otherwise identical
+to Assignment 2's methods.
+
+\textbf{Trigger ablation (Stage B, ReAct$\to$CoT-SC only):} \texttt{paper}
+($S_1$, control) versus the arm(s) selected by the signal-validation pass.
+
+\subsection{Statistics}
+Paired exact McNemar tests (binomial test on discordant pairs) compare
+each arm to the \texttt{paper} control within a domain --- correct, since
+both arms are evaluated on the same items. Accuracy confidence intervals
+use a 10{,}000-resample percentile bootstrap.
